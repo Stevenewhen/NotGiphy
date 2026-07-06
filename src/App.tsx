@@ -3,7 +3,6 @@ import SearchBar from "./SearchBar";
 import GifList from "./GifList";
 import Toast from "./Toast";
 import "./styles.css";
-import './App.css'
 
 interface Gif {
   id: string;
