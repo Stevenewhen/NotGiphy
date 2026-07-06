@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { SyntheticEvent } from 'react';
-import { useDebounce } from './useDebounce';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;

@@ -1,13 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-
-interface Gif {
-  id: string;
-  title: string;
-  mp4Url: string;
-  gifUrl: string;
-  stillUrl: string;
-}
+import type { Gif } from '../api/giphyClient';
 
 interface GifListProps {
   gifs: Gif[];

@@ -1,43 +1,18 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
-import SearchBar from "./SearchBar";
-import GifList from "./GifList";
-import Toast from "./Toast";
-import ApiLimitBadge from "./ApiLimitBadge";
-import { useRequestBudget } from "./useRequestBudget";
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import SearchBar from "../components/SearchBar";
+import GifList from "../components/GifList";
+import Toast from "../components/Toast";
+import ApiLimitBadge from "../components/ApiLimitBadge";
+import { useRequestBudget } from "../hooks/useRequestBudget";
+import { GiphyClient, GiphyRateLimitError } from "../api/giphyClient";
+import type { Gif } from "../api/giphyClient";
 import "./styles.css";
-
-interface Gif {
-  id: string;
-  title: string;
-  mp4Url: string;
-  gifUrl: string;
-  stillUrl: string;
-}
 
 const RESULTS_PER_PAGE = 24;
 const API_KEY = import.meta.env.VITE_GIPHY_API_KEY;
-// Giphy's free/Beta API key is capped at 42 requests/hour.
-const HOURLY_LIMIT = 42;
+// Giphy's free/Beta API key is capped at 100 requests/hour per Google.
+const HOURLY_LIMIT = 100;
 const WARNING_RATIO = 0.85;
-
-interface GiphyApiGif {
-  id: string;
-  title: string;
-  images: {
-    fixed_height: { mp4: string; url: string };
-    fixed_height_still: { url: string };
-  };
-}
-
-function mapGifs(data: GiphyApiGif[]): Gif[] {
-  return data.map((gif) => ({
-    id: gif.id,
-    title: gif.title,
-    mp4Url: gif.images.fixed_height.mp4,
-    gifUrl: gif.images.fixed_height.url,
-    stillUrl: gif.images.fixed_height_still.url,
-  }));
-}
 
 function getQueryFromUrl(): string {
   return new URLSearchParams(window.location.search).get('q') || '';
@@ -58,6 +33,11 @@ function App() {
 
   const { used, limit, recordRequest } = useRequestBudget(HOURLY_LIMIT);
 
+  const giphyClient = useMemo(
+    () => new GiphyClient({ apiKey: API_KEY, onRequest: recordRequest }),
+    [recordRequest]
+  );
+
   useEffect(() => {
     const nearLimit = used >= Math.ceil(limit * WARNING_RATIO);
     if (nearLimit && !hasWarnedRef.current) {
@@ -68,36 +48,30 @@ function App() {
     }
   }, [used, limit]);
 
-  // Load 3 random-ish gifs to show before the user has searched at all.
   useEffect(() => {
     if (getQueryFromUrl()) return; // a shared/bookmarked search link takes priority
 
     const loadPreview = async () => {
       try {
-        const params = new URLSearchParams({
-          api_key: API_KEY,
-          limit: '3',
-          rating: 'g',
-        });
-        const response = await fetch(
-          `https://api.giphy.com/v1/gifs/trending?${params.toString()}`
-        );
-        recordRequest();
-        if (response.status === 429) {
+        // Requirements wanted 3 but I have 4 columns.
+        const results = await Promise.all([
+          giphyClient.random({ rating: 'g' }),
+          giphyClient.random({ rating: 'g' }),
+          giphyClient.random({ rating: 'g' }),
+          giphyClient.random({ rating: 'g' }),
+        ]);
+        setGifs(results);
+      } catch (err) {
+        if (err instanceof GiphyRateLimitError) {
           setIsRateLimited(true);
-          return;
         }
-        if (!response.ok) return;
-        const data = await response.json();
-        setGifs(mapGifs(data.data));
-      } catch {
-        // Non-critical — just skip the preview if it fails.
+        // Otherwise non-critical — just skip the preview if it fails.
       }
     };
 
     loadPreview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [giphyClient]);
 
   const searchGifs = useCallback(
     async (searchQuery: string, isNewSearch: boolean) => {
@@ -114,34 +88,15 @@ function App() {
       const currentOffset = isNewSearch ? 0 : offset;
 
       try {
-        const params = new URLSearchParams({
-          api_key: API_KEY,
-          q: trimmed,
-          limit: String(RESULTS_PER_PAGE),
-          offset: String(currentOffset),
+        const results = await giphyClient.search(trimmed, {
+          limit: RESULTS_PER_PAGE,
+          offset: currentOffset,
         });
-        const response = await fetch(
-          `https://api.giphy.com/v1/gifs/search?${params.toString()}`
-        );
-        recordRequest();
-
-        if (response.status === 429) {
-          // Keep whatever gifs are already on screen — don't wipe them out.
-          setIsRateLimited(true);
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error(`Giphy API error: ${response.status}`);
-        }
 
         setIsRateLimited(false);
-        const data = await response.json();
-        const results = mapGifs(data.data);
-
         setGifs((prev) => (isNewSearch ? results : [...prev, ...results]));
-        setHasMore(data.data.length === RESULTS_PER_PAGE);
-        setOffset(currentOffset + data.data.length);
+        setHasMore(results.length === RESULTS_PER_PAGE);
+        setOffset(currentOffset + results.length);
 
         if (isNewSearch) {
           const url = new URL(window.location.href);
@@ -149,6 +104,11 @@ function App() {
           window.history.pushState({}, '', url);
         }
       } catch (err) {
+        if (err instanceof GiphyRateLimitError) {
+          // Keep whatever gifs are already on screen — don't wipe them out.
+          setIsRateLimited(true);
+          return;
+        }
         setError(err instanceof Error ? err.message : 'Something went wrong');
       } finally {
         setIsLoading(false);
@@ -156,7 +116,7 @@ function App() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [offset]
+    [offset, giphyClient]
   );
 
   const handleSearch = (searchQuery: string) => {
