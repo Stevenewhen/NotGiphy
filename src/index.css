@@ -59,25 +59,6 @@ body {
     var(--bg);
 }
 
-/* Hand-painted paper grain, Ghibli-background style */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.5;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.03 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-@media (prefers-color-scheme: dark) {
-  body::before {
-    opacity: 0.35;
-    mix-blend-mode: overlay;
-  }
-}
-
 #root {
   position: relative;
   width: 1126px;
@@ -90,60 +71,6 @@ body::before {
   flex-direction: column;
   box-sizing: border-box;
   overflow-x: clip;
-}
-
-/* Drifting cloud shapes, like a soft sky backdrop */
-#root::before,
-#root::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  pointer-events: none;
-  border-radius: 50%;
-  filter: blur(2px);
-  opacity: 0.55;
-}
-
-#root::before {
-  top: 4%;
-  left: -8%;
-  width: 340px;
-  height: 100px;
-  background: radial-gradient(ellipse at center, #ffffff 0%, var(--sky-soft) 70%, transparent 75%);
-  animation: drift-right 46s ease-in-out infinite;
-}
-
-#root::after {
-  top: 14%;
-  right: -10%;
-  width: 260px;
-  height: 80px;
-  background: radial-gradient(ellipse at center, #ffffff 0%, var(--sky-soft) 70%, transparent 75%);
-  animation: drift-left 60s ease-in-out infinite;
-}
-
-@media (prefers-color-scheme: dark) {
-  #root::before,
-  #root::after {
-    opacity: 0.12;
-  }
-}
-
-@keyframes drift-right {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(60px, 14px); }
-}
-
-@keyframes drift-left {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-50px, 10px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #root::before,
-  #root::after {
-    animation: none;
-  }
 }
 
 h1,
