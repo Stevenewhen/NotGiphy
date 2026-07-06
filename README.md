@@ -10,7 +10,7 @@ Not deployed yet.
 
 - Search GIFs, with results updating shortly after you stop typing (debounced)
 - Search state is synced to the URL (`?q=`), so results are shareable and bookmarkable
-- Click (or Tab to + Enter/Space) any GIF to copy its MP4 URL to the clipboard, with a confirmation toast
+- Click (or Tab to + Enter/Space) any GIF to copy its GIF URL to the clipboard, with a confirmation toast
 - "Load more" to page through additional results for a query
 - Giphy's rate limit is handled gracefully — a banner is shown, and previously loaded results stay on screen
 - Shows 3 trending GIFs before the user has searched

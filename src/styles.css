@@ -235,6 +235,13 @@
   color: #c1666b;
 }
 
+@media (max-width: 700px) {
+  .api-limit-badge {
+    top: auto;
+    bottom: 1rem;
+  }
+}
+
 .toast {
   position: fixed;
   bottom: 2rem;
