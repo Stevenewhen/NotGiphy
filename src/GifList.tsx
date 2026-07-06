@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 
 interface Gif {
   id: string;
   title: string;
   mp4Url: string;
+  gifUrl: string;
   stillUrl: string;
 }
 
@@ -14,7 +16,15 @@ interface GifListProps {
 
 function GifTile({ gif, onCopy }: { gif: Gif; onCopy: (url: string) => void }) {
   const [isHovering, setIsHovering] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+    };
+  }, []);
 
   const handleMouseEnter = () => {
     setIsHovering(true);
@@ -34,19 +44,34 @@ function GifTile({ gif, onCopy }: { gif: Gif; onCopy: (url: string) => void }) {
 
   const handleClick = async () => {
     try {
-      await navigator.clipboard.writeText(gif.mp4Url);
-      onCopy(gif.mp4Url);
+      await navigator.clipboard.writeText(gif.gifUrl);
+      onCopy(gif.gifUrl);
+      navigator.vibrate?.(50);
+      setIsCopied(true);
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+      copiedTimeoutRef.current = setTimeout(() => setIsCopied(false), 1500);
     } catch {
       // Clipboard API can fail (e.g. no permissions/insecure context) — fail silently for now.
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
     }
   };
 
   return (
     <div
       className="gif-list__item"
+      role="button"
+      tabIndex={0}
+      aria-label={`Copy link for ${gif.title || 'this GIF'}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
     >
       {!isHovering && (
         <img src={gif.stillUrl} alt={gif.title || 'GIF'} loading="lazy" />
@@ -60,6 +85,7 @@ function GifTile({ gif, onCopy }: { gif: Gif; onCopy: (url: string) => void }) {
         preload="none"
         style={{ display: isHovering ? 'block' : 'none' }}
       />
+      <span className="gif-list__hint">{isCopied ? 'Copied link' : 'Copy link'}</span>
     </div>
   );
 }
