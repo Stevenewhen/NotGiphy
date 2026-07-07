@@ -47,11 +47,6 @@ export interface SearchOptions {
   offset: number;
 }
 
-export interface TrendingOptions {
-  limit: number;
-  rating?: string;
-}
-
 export interface RandomOptions {
   rating?: string;
 }
@@ -91,13 +86,6 @@ export class GiphyClient {
       q: query,
       limit: String(limit),
       offset: String(offset),
-    });
-  }
-
-  trending({ limit, rating }: TrendingOptions): Promise<Gif[]> {
-    return this.request("trending", {
-      limit: String(limit),
-      ...(rating ? { rating } : {}),
     });
   }
 

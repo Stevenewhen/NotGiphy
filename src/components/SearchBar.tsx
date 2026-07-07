@@ -18,14 +18,12 @@ export default function SearchBar({
   const [query, setQuery] = useState(initialQuery);
   const debouncedQuery = useDebounce(query, 500);
 
-  // Fires 500ms after typing settles — also covers the initial-load case
-  // where `query` comes pre-filled from a ?q= URL param.
   useEffect(() => {
     const trimmed = debouncedQuery.trim();
     if (trimmed) {
       onSearch(trimmed);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [debouncedQuery]);
 
   // Enter/submit searches immediately, bypassing the debounce wait.
