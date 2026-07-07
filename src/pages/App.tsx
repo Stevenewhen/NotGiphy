@@ -27,6 +27,7 @@ function App() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
+  const [isPreview, setIsPreview] = useState(() => !getQueryFromUrl());
   const [isToastVisible, setIsToastVisible] = useState(false);
   const [isLimitWarningVisible, setIsLimitWarningVisible] = useState(false);
   const hasWarnedRef = useRef(false);
@@ -53,9 +54,7 @@ function App() {
 
     const loadPreview = async () => {
       try {
-        // Requirements wanted 3 but I have 4 columns.
         const results = await Promise.all([
-          giphyClient.random({ rating: 'g' }),
           giphyClient.random({ rating: 'g' }),
           giphyClient.random({ rating: 'g' }),
           giphyClient.random({ rating: 'g' }),
@@ -121,6 +120,7 @@ function App() {
 
   const handleSearch = (searchQuery: string) => {
     setQuery(searchQuery);
+    setIsPreview(false);
     searchGifs(searchQuery, true);
   };
 
@@ -151,7 +151,7 @@ function App() {
       )}
       {error && <p className="error">{error}</p>}
 
-      {gifs.length > 0 && <GifList gifs={gifs} onCopy={handleCopy} />}
+      {gifs.length > 0 && <GifList gifs={gifs} onCopy={handleCopy} centered={isPreview} />}
 
       {gifs.length > 0 && hasMore && !isRateLimited && (
         <button

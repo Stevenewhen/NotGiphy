@@ -5,6 +5,7 @@ import type { Gif } from '../api/giphyClient';
 interface GifListProps {
   gifs: Gif[];
   onCopy: (url: string) => void;
+  centered?: boolean;
 }
 
 function GifTile({ gif, onCopy }: { gif: Gif; onCopy: (url: string) => void }) {
@@ -83,9 +84,9 @@ function GifTile({ gif, onCopy }: { gif: Gif; onCopy: (url: string) => void }) {
   );
 }
 
-export default function GifList({ gifs, onCopy }: GifListProps) {
+export default function GifList({ gifs, onCopy, centered }: GifListProps) {
   return (
-    <div className="gif-list">
+    <div className={centered ? "gif-list gif-list--centered" : "gif-list"}>
       {gifs.map((gif) => (
         <GifTile key={gif.id} gif={gif} onCopy={onCopy} />
       ))}

@@ -145,6 +145,22 @@
   }
 }
 
+.gif-list--centered {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.gif-list--centered .gif-list__item {
+  flex: 0 0 calc((100% - 3 * 0.9rem) / 4);
+}
+
+@media (max-width: 700px) {
+  .gif-list--centered .gif-list__item {
+    flex: 0 0 calc((100% - 0.9rem) / 2);
+  }
+}
+
 .gif-list__item {
   position: relative;
   z-index: 1;
