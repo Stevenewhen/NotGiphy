@@ -137,7 +137,7 @@ function App() {
       <ApiLimitBadge used={used} limit={limit} />
       <div className="app-header">
         <h1>
-          <a href="/" className="app-title">NotGiphy</a>
+          <a href="/" className="app-title">is!Giphy</a>
         </h1>
         <h2>Start searching for gifs!</h2>
         <SearchBar onSearch={handleSearch} isLoading={isLoading} initialQuery={query} />
