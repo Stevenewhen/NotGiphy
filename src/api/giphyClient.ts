@@ -66,7 +66,7 @@ export class GiphyClient {
     this.onRequest = onRequest;
   }
 
-  private async request(path: string, params: Record<string, string>): Promise<Gif[]> {
+  private async fetchJson<T>(path: string, params: Record<string, string>): Promise<T> {
     const searchParams = new URLSearchParams({ api_key: this.apiKey, ...params });
     const response = await fetch(`${this.baseUrl}/${path}?${searchParams.toString()}`);
     this.onRequest?.();
@@ -78,8 +78,12 @@ export class GiphyClient {
       throw new Error(`Giphy API error: ${response.status}`);
     }
 
-    const data: GiphyApiResponse = await response.json();
-    return mapGifs(data.data);
+    return response.json();
+  }
+
+  private async request(path: string, params: Record<string, string>): Promise<Gif[]> {
+    const { data } = await this.fetchJson<GiphyApiResponse>(path, params);
+    return mapGifs(data);
   }
 
   search(query: string, { limit, offset }: SearchOptions): Promise<Gif[]> {
@@ -98,21 +102,10 @@ export class GiphyClient {
   }
 
   async random({ rating }: RandomOptions = {}): Promise<Gif> {
-    const searchParams = new URLSearchParams({
-      api_key: this.apiKey,
-      ...(rating ? { rating } : {}),
-    });
-    const response = await fetch(`${this.baseUrl}/random?${searchParams.toString()}`);
-    this.onRequest?.();
-
-    if (response.status === 429) {
-      throw new GiphyRateLimitError();
-    }
-    if (!response.ok) {
-      throw new Error(`Giphy API error: ${response.status}`);
-    }
-
-    const { data }: { data: GiphyApiGif } = await response.json();
+    const { data } = await this.fetchJson<{ data: GiphyApiGif }>(
+      "random",
+      rating ? { rating } : {},
+    );
     return mapGifs([data])[0];
   }
 }

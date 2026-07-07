@@ -49,7 +49,7 @@ function App() {
   }, [used, limit]);
 
   useEffect(() => {
-    if (getQueryFromUrl()) return; // a shared/bookmarked search link takes priority
+    if (getQueryFromUrl()) return;
 
     const loadPreview = async () => {
       try {
@@ -65,12 +65,12 @@ function App() {
         if (err instanceof GiphyRateLimitError) {
           setIsRateLimited(true);
         }
-        // Otherwise non-critical — just skip the preview if it fails.
+
       }
     };
 
     loadPreview();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [giphyClient]);
 
   const searchGifs = useCallback(
