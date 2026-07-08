@@ -10,7 +10,7 @@ import "./styles.css";
 
 const RESULTS_PER_PAGE = 24;
 const API_KEY = import.meta.env.VITE_GIPHY_API_KEY;
-// Giphy's free/Beta API key is capped at 100 requests/hour per Google.
+// Giphy's free/Beta API key is capped at 100 requests/hour per Giphy support.
 const HOURLY_LIMIT = 100;
 const WARNING_RATIO = 0.85;
 

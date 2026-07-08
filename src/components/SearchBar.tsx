@@ -23,7 +23,6 @@ export default function SearchBar({
     if (trimmed) {
       onSearch(trimmed);
     }
-    
   }, [debouncedQuery]);
 
   // Enter/submit searches immediately, bypassing the debounce wait.
