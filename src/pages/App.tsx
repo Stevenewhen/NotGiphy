@@ -49,31 +49,35 @@ function App() {
     }
   }, [used, limit]);
 
+  const fetchPreviewGifs = useCallback(
+    () =>
+      Promise.all([
+        giphyClient.random({ rating: 'g' }),
+        giphyClient.random({ rating: 'g' }),
+        giphyClient.random({ rating: 'g' }),
+      ]),
+    [giphyClient]
+  );
+
   useEffect(() => {
     if (getQueryFromUrl()) return;
 
     const loadPreview = async () => {
       try {
-        const results = await Promise.all([
-          giphyClient.random({ rating: 'g' }),
-          giphyClient.random({ rating: 'g' }),
-          giphyClient.random({ rating: 'g' }),
-        ]);
+        const results = await fetchPreviewGifs();
         setGifs(results);
       } catch (err) {
         if (err instanceof GiphyRateLimitError) {
           setIsRateLimited(true);
         }
-
       }
     };
 
     loadPreview();
-
-  }, [giphyClient]);
+  }, [fetchPreviewGifs]);
 
   const searchGifs = useCallback(
-    async (searchQuery: string, isNewSearch: boolean) => {
+    async (searchQuery: string, isNewSearch: boolean, updateUrl = true) => {
       const trimmed = searchQuery.trim();
       if (!trimmed) return;
 
@@ -97,7 +101,7 @@ function App() {
         setHasMore(results.length === RESULTS_PER_PAGE);
         setOffset(currentOffset + results.length);
 
-        if (isNewSearch) {
+        if (isNewSearch && updateUrl) {
           const url = new URL(window.location.href);
           url.searchParams.set('q', trimmed);
           window.history.pushState({}, '', url);
@@ -126,6 +130,30 @@ function App() {
   const handleLoadMore = () => {
     searchGifs(query, false);
   };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const urlQuery = getQueryFromUrl();
+      setQuery(urlQuery);
+
+      if (urlQuery) {
+        setIsPreview(false);
+        searchGifs(urlQuery, true, false);
+      } else {
+        setIsPreview(true);
+        fetchPreviewGifs()
+          .then(setGifs)
+          .catch((err) => {
+            if (err instanceof GiphyRateLimitError) {
+              setIsRateLimited(true);
+            }
+          });
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [searchGifs, fetchPreviewGifs]);
 
   const handleCopy = () => {
     setIsToastVisible(true);
