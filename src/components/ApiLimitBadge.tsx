@@ -5,7 +5,7 @@ interface ApiLimitBadgeProps {
 
 export default function ApiLimitBadge({ used, limit }: ApiLimitBadgeProps) {
   const ratio = used / limit;
-  const level = ratio >= 1 ? 'over' : ratio >= 0.85 ? 'warn' : 'ok';
+  const level = ratio >= 1 ? "over" : ratio >= 0.85 ? "warn" : "ok";
 
   return (
     <div
