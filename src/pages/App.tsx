@@ -49,32 +49,25 @@ function App() {
     }
   }, [used, limit]);
 
-  const fetchPreviewGifs = useCallback(
-    () =>
-      Promise.all([
+  const loadPreview = useCallback(async () => {
+    try {
+      const results = await Promise.all([
         giphyClient.random({ rating: 'g' }),
         giphyClient.random({ rating: 'g' }),
         giphyClient.random({ rating: 'g' }),
-      ]),
-    [giphyClient]
-  );
+      ]);
+      setGifs(results);
+    } catch (err) {
+      if (err instanceof GiphyRateLimitError) {
+        setIsRateLimited(true);
+      }
+    }
+  }, [giphyClient]);
 
   useEffect(() => {
     if (getQueryFromUrl()) return;
-
-    const loadPreview = async () => {
-      try {
-        const results = await fetchPreviewGifs();
-        setGifs(results);
-      } catch (err) {
-        if (err instanceof GiphyRateLimitError) {
-          setIsRateLimited(true);
-        }
-      }
-    };
-
     loadPreview();
-  }, [fetchPreviewGifs]);
+  }, [loadPreview]);
 
   const searchGifs = useCallback(
     async (searchQuery: string, isNewSearch: boolean, updateUrl = true) => {
@@ -141,19 +134,13 @@ function App() {
         searchGifs(urlQuery, true, false);
       } else {
         setIsPreview(true);
-        fetchPreviewGifs()
-          .then(setGifs)
-          .catch((err) => {
-            if (err instanceof GiphyRateLimitError) {
-              setIsRateLimited(true);
-            }
-          });
+        loadPreview();
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [searchGifs, fetchPreviewGifs]);
+  }, [searchGifs, loadPreview]);
 
   const handleCopy = () => {
     setIsToastVisible(true);
