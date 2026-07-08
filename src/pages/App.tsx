@@ -114,7 +114,6 @@ function App() {
         setIsLoadingMore(false);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [offset, giphyClient]
   );
 
