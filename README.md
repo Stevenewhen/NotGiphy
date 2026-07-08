@@ -4,7 +4,7 @@ A GIF search app built with React, TypeScript, and Vite, using the Giphy API.
 
 ## Live demo
 
-Not deployed yet.
+Deployed on Vercel: [isnotgiphy.vercel.app](https://isnotgiphy.vercel.app)
 
 ## Features
 
